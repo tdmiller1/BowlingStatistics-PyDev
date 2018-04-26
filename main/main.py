@@ -5,15 +5,14 @@
 
 import tkinter as tk
 from tkinter import Menu
+from tkinter import Button
 from tkinter import ttk
 
+from webAPI.webAPI import webAPI
 
 class BowlingStatisticsProgram():
     def __init__(self):
         return
-
-    def test(self, num):
-        return num * 2
 
 def _quit():
     win.quit()
@@ -22,7 +21,7 @@ def _quit():
 
 def _new():
     exit()
-    
+
 def _about():
     exit()
 
@@ -30,7 +29,7 @@ def _about():
 win = tk.Tk()
 
 # Add Title
-win.title("Python Program - Bowling Stats")
+win.title("Bowling Stats - Python")
 
 #================
 # Start GUI
@@ -62,79 +61,74 @@ tabControl.add(tab2, text = "Tab 2")
 
 tabControl.pack(expand=1, fill="both")
 
-#-----------------------------Tab 1 Content------------------------------------------------------
+#-----------------Tab 1 Content-----------------------------------------------------------------
 bowling_stats_frame = ttk.LabelFrame(tab1, text="Bowling Statistics")
 bowling_stats_frame.grid(column = 0, row =0, padx=8, pady=4)
 
 ttk.Label(bowling_stats_frame, text="Player:").grid(column=0,row=0,sticky='E')
 
-
-#------------------Combo Box-------------------------------------------
+#------------------Combo Box--------------------------------------------------------------------
 city = tk.StringVar()
-citySelected = ttk.Combobox(bowling_stats_frame, width=12, textvariable=city)
+playerSelected = ttk.Combobox(bowling_stats_frame, width=12, textvariable=city)
 #TODO - Values comes from api hit as well
-citySelected['values'] = ('Tucker Miller', 'Lakin Lane', 'Mitch Lewis')
-citySelected.grid(column=1, row=0)
-citySelected.current(0)
+playerSelected['values'] = ('Tucker Miller', 'Lakin Lane', 'Mitch Lewis')
+playerSelected.grid(column=1, row=0)
 
-max_width = max([len(x) for x in citySelected['values']])
+max_width = max([len(x) for x in playerSelected['values']])
 new_width = max_width
-citySelected.config(width=new_width)
-
+playerSelected.config(width=new_width)
 
 ENTRY_WIDTH = max_width + 3
 
-ttk.Label(bowling_stats_frame, text="Last Updated: ").grid(column=0, row = 1, sticky='E')
-updated=tk.StringVar()
-updatedEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=updated, state='readonly')
-updatedEntry.grid(column=1, row=1, sticky='W')
-
+# Average Score Entry
 ttk.Label(bowling_stats_frame, text="Average Score: ").grid(column=0, row = 2, sticky='E')
 average=tk.StringVar()
-averageEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=updated, state='readonly')
-averageEntry.grid(column=1, row=5, sticky='W')
+averageEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=average, state='readonly')
+averageEntry.grid(column=1, row=2, sticky='W')
 
-ttk.Label(bowling_stats_frame, text="Wins: ").grid(column=0, row = 5, sticky='E')
-wins=tk.StringVar()
-winsEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=updated, state='readonly')
-winsEntry.grid(column=1, row=2, sticky='W')
-
+# Highscore/Max Score Entry
 ttk.Label(bowling_stats_frame, text="High Score: ").grid(column=0, row = 3, sticky='E')
 highScore=tk.StringVar()
-highScoreEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=updated, state='readonly')
+highScoreEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=highScore, state='readonly')
 highScoreEntry.grid(column=1, row=3, sticky='W')
 
-ttk.Label(bowling_stats_frame, text="Low Score: ").grid(column=0, row = 4, sticky='E')
-lowScore=tk.StringVar()
-lowScoreEntry = ttk.Entry(bowling_stats_frame, width=ENTRY_WIDTH, textvariable=updated, state='readonly')
-lowScoreEntry.grid(column=1, row=4, sticky='W')
-
-
-#-----------Padding------------------------------------
 for child in bowling_stats_frame.winfo_children():
     child.grid_configure(padx=4, pady=2)
 
 #------------------URL GRAB------------------------
-import urllib.request
-    
-url_general = 'http://webApi.tuckermillerdev.com/hello/'
-request = urllib.request.urlopen(url_general)
-string = request.read().decode()
+webAPI = webAPI()
+data = webAPI.getPlayers()
 
+players = []
+# Set Combobox
+for i in (data):
+    players.append(i["playerName"])
+    currentPlayer = data[0]
+    average.set(currentPlayer["average"])
+    highScore.set(currentPlayer["max"])
 
-string = string.replace("{","").replace("}","")
-new = string.split(":")
-updated = new[1]
+playerSelected['values'] = players
+playerSelected.current(0)
+
+# Button Click set data
+def update_Entry():
+    for i in data:
+        if playerSelected.get() == i["playerName"]:
+            currentPlayer = i
+            average.set(i["average"])
+            highScore.set(i["max"])
+
+refreshButton = Button(bowling_stats_frame, text = "Refresh", command = update_Entry)
+refreshButton.grid(column=4, row=0)
 
 #-----------------------------Tab 2 Content------------------------------------------------------
 bowling_stats_frame = ttk.LabelFrame(tab2, text="End Credits")
 bowling_stats_frame.grid(column = 0, row =0, padx=8, pady=4)
 
 ttk.Label(bowling_stats_frame, text="Tucker Miller made this and is still getting the hang of it").grid(column=0,row=0,sticky='E')
+
 #-------------
 # Start GUI
 # -------------
-
-
-win.minsize(width=400, height=2)
+win.minsize(width=300, height=2)
 win.mainloop()
