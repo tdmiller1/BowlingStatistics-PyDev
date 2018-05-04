@@ -1,14 +1,25 @@
 import urllib.request
 import json
 
-class webAPI():
+
+class WebApi:
     def __init__(self):
         return
 
-    def getPlayers(self):
+    @classmethod
+    def get_players(cls):
         url_general = 'http://webApi.tuckermillerdev.com/players/'
         request = urllib.request.urlopen(url_general)
         string = request.read().decode()
 
-        data = json.loads(string)
-        return data
+        return json.loads(string)
+
+    @classmethod
+    def get_player_games(cls,id):
+        id = str(id)
+        url_general = 'http://webApi.tuckermillerdev.com/player/'+id+'/history'
+        request = urllib.request.urlopen(url_general)
+        string = request.read().decode()
+        playerHistory = json.loads(string)
+
+        return playerHistory['games']
